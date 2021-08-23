@@ -1,35 +1,29 @@
-import { useState } from "react"
+import { useState , useEffect } from "react"
+import { BrowserRouter as Router, Route} from 'react-router-dom'
 import Header from './components/Header'
-import Task from "./components/Task";
 import Tasks from './components/Tasks';
 import AddTask from "./components/AddTask";
+import Footer from "./components/Footer";
+import About from "./components/About";
+
 
 function App() {
+
   const [showAddTask, setShowAddTask] = useState(false)
-  const [tasks, setTasks] = useState(
-    [
-        {
-            id:0,
-            text:'Dr Appointment',
-            day: '5th Feb',
-            remainder: true
-        },
-        {
-            id:1,
-            text:'office',
-            day: '8th Feb',
-            remainder: true
-        },
-        {
-            id:2,
-            text:'Park Visit',
-            day: '10th Feb',
-            remainder: false
-        }
-    ])  
-    const onAdd =()=>{
-      
+  const [tasks, setTasks] = useState([]) 
+  useEffect(() => { 
+    const getTasks = async() =>{
+      const taskFromServer = await fetchTasks()
+      setTasks(taskFromServer)
     }
+    getTasks()
+  }, [])
+
+  const fetchTasks = async() => {
+    const res = await fetch('http://localhost:5000/tasks')
+    const data = await res.json()
+    return data
+  }
 
 
     const addTask = (task)=>{
@@ -46,15 +40,24 @@ function App() {
   }
     
   return (
+    <Router>
     <div>
      
        <Header title ='Task Tracker' onAdd = {()=>setShowAddTask(!showAddTask) } showAdd = {showAddTask}  />
-      {showAddTask &&  <AddTask  onAdd = {addTask}/>}
+      
+      <Route path = '/' exact render = {(props)=>(
+        <>
+          {showAddTask &&  <AddTask  onAdd = {addTask}/>}
       {tasks.length >0 ? <Tasks tasks = {tasks} 
       deleteTask = {deleteTask} 
       onToggle = {toggleRemainder}/> : <h1>No task to show</h1>}
-      
+
+        </>
+      )} />
+      <Route path = '/about' component = {About} />
+      <Footer />
        </div>
+       </Router>
   );
 }
 
